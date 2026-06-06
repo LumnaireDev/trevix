@@ -8,11 +8,12 @@ A backend REST API powering web, desktop, mobile, and IoT clients for managing p
 
 | Layer | Technology |
 |---|---|
-| Language | Java 17+ |
+| Language | Java 21 |
 | Framework | Spring Boot |
 | Auth | JWT (Bearer Token) |
-| Database | PostgreSQL / MySQL |
+| Database | PostgreSQL |
 | Build Tool | Maven |
+| Testing | Postman |
 
 ---
 
