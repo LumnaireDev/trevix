@@ -121,10 +121,10 @@ Authorization: Bearer <token>
 
 | Name | Role |
 |---|---|
-| **Nathaniel Coronacion** | Software Engineer / Backend Developer |
+| **Nathaniel Coronacion** | Software Engineer / Lead Backend Engineer |
 | **Johanna Panganuron** | Web Frontend Developer |
-| **Andrie Candelaria** | Mobile App Developer |
-| **JL Romero Juanitas** | Desktop App Developer |
+| **Andrie Candelaria** | Mobile Application Developer |
+| **JL Romero Juanitas** | Desktop Application Developer (Team Lead) |
 | **Jasmine Kate** | IoT Integration / Embedded Software Engineer |
 | **Lenhard Pedro Malana** | UI/UX Designer |
 
