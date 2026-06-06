@@ -1,0 +1,16 @@
+package com.trevix.property_management.enums;
+
+public enum NotificationType {
+    PAYMENT_REMINDER,
+    PAYMENT_CONFIRMATION,
+    PACKAGE_ARRIVED,
+    PACKAGE_PICKUP,
+    MAINTENANCE_ASSIGNED,
+    MAINTENANCE_COMPLETED,
+    SOS_ALERT,
+    LATE_ENTRY_ALERT,
+    ANNOUNCEMENT,
+    LEASE_EXPIRING,
+    MODULE_ACTIVATED,
+    RENEWAL_REQUEST
+}
