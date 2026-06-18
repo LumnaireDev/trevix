@@ -23,19 +23,23 @@ public interface TenantRepository extends JpaRepository<Tenant, UUID> {
     @Query("SELECT t FROM Tenant t WHERE t.isActive = true")
     List<Tenant> findAllActive();
     
-    @Query("SELECT t FROM Tenant t WHERE t.isActive = true AND t.user.property.id = :propertyId")
+    @Query("SELECT DISTINCT t FROM Tenant t JOIN Lease l ON l.tenant = t " +
+           "WHERE t.isActive = true AND l.property.id = :propertyId AND l.status = 'ACTIVE'")
     List<Tenant> findByPropertyId(@Param("propertyId") UUID propertyId);
-    
-    @Query("SELECT t FROM Tenant t WHERE t.isActive = true AND t.user.property.id = :propertyId AND t.user.room.id = :roomId")
+
+    @Query("SELECT DISTINCT t FROM Tenant t JOIN Lease l ON l.tenant = t " +
+           "WHERE t.isActive = true AND l.property.id = :propertyId AND l.room.id = :roomId AND l.status = 'ACTIVE'")
     List<Tenant> findByPropertyAndRoom(@Param("propertyId") UUID propertyId, @Param("roomId") UUID roomId);
-    
-    @Query("SELECT COUNT(t) FROM Tenant t WHERE t.isActive = true AND t.user.property.id = :propertyId")
+
+    @Query("SELECT COUNT(DISTINCT t) FROM Tenant t JOIN Lease l ON l.tenant = t " +
+           "WHERE t.isActive = true AND l.property.id = :propertyId AND l.status = 'ACTIVE'")
     long countActiveByProperty(@Param("propertyId") UUID propertyId);
-    
+
     @Query("SELECT t FROM Tenant t WHERE t.scorecardScore < :threshold ORDER BY t.scorecardScore ASC")
     List<Tenant> findLowScorecardTenants(@Param("threshold") BigDecimal threshold);
-    
-    @Query("SELECT AVG(t.scorecardScore) FROM Tenant t WHERE t.user.property.id = :propertyId")
+
+    @Query("SELECT AVG(t.scorecardScore) FROM Tenant t JOIN Lease l ON l.tenant = t " +
+           "WHERE l.property.id = :propertyId AND l.status = 'ACTIVE'")
     BigDecimal getAverageScorecardScore(@Param("propertyId") UUID propertyId);
     
     @Query("SELECT t FROM Tenant t WHERE t.moveInDate BETWEEN :startDate AND :endDate")
@@ -45,4 +49,8 @@ public interface TenantRepository extends JpaRepository<Tenant, UUID> {
     @Transactional
     @Query("UPDATE Tenant t SET t.isActive = false WHERE t.userId = :tenantId")
     void deactivateTenant(@Param("tenantId") UUID tenantId);
+
+    @Query("SELECT COUNT(DISTINCT t) FROM Tenant t JOIN Lease l ON l.tenant = t " +
+           "WHERE t.isActive = true AND l.status = 'ACTIVE' AND l.property.admin.userId = :adminId")
+    long countActiveByAdmin(@Param("adminId") UUID adminId);
 }

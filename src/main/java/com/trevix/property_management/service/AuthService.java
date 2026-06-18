@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.trevix.property_management.config.JwtTokenProvider;
 import com.trevix.property_management.dto.request.LoginRequest;
-import com.trevix.property_management.dto.request.TenantCreateRequest;
+import com.trevix.property_management.dto.request.TenantRegisterRequest;
 import com.trevix.property_management.dto.response.AuthResponse;
 import com.trevix.property_management.dto.response.UserResponse;
 import com.trevix.property_management.entity.Tenant;
@@ -22,6 +22,7 @@ import com.trevix.property_management.exception.AppException;
 import com.trevix.property_management.mapper.UserMapper;
 import com.trevix.property_management.repository.TenantRepository;
 import com.trevix.property_management.repository.UserRepository;
+import com.trevix.property_management.security.CustomUserDetails;
 
 import java.util.UUID;
 
@@ -47,11 +48,12 @@ public class AuthService {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            User user = userRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND, "User not found: " + userDetails.getId()));
+
             String accessToken = jwtTokenProvider.generateAccessToken(authentication);
             String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
-
-            User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND, "User not found"));
 
             return AuthResponse.success(accessToken, refreshToken,
                 jwtTokenProvider.getAccessTokenExpiration(), userMapper.toResponse(user));
@@ -79,7 +81,7 @@ public class AuthService {
             jwtTokenProvider.getAccessTokenExpiration(), userMapper.toResponse(user));
     }
 
-    public UserResponse registerTenant(TenantCreateRequest request) {
+    public UserResponse registerTenant(TenantRegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent())
             throw new AppException(ErrorCode.DUPLICATE_RESOURCE, "User with this email already exists");
 

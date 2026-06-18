@@ -14,6 +14,8 @@ import java.util.UUID;
 
 @Repository
 public interface RoomRepository extends JpaRepository<Room, UUID> {
+    @Query("SELECT COUNT(r) FROM Room r WHERE r.isActive = true AND r.property.admin.userId = :adminId")
+    long countByAdminId(@Param("adminId") UUID adminId);
     
     List<Room> findByPropertyId(UUID propertyId);
     

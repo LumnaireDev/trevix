@@ -16,6 +16,7 @@ import com.trevix.property_management.enums.ErrorCode;
 import com.trevix.property_management.enums.UserRole;
 import com.trevix.property_management.exception.AppException;
 import com.trevix.property_management.mapper.TenantMapper;
+import com.trevix.property_management.repository.PropertyRepository;
 import com.trevix.property_management.repository.TenantRepository;
 import com.trevix.property_management.repository.UserRepository;
 
@@ -31,14 +32,15 @@ public class TenantService {
 
     private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
+    private final PropertyRepository propertyRepository;
     private final TenantMapper tenantMapper;
 
     @Transactional
-    public TenantResponse createTenant(TenantCreateRequest request) {
-        User user = userRepository.findById(request.getUserId())
+    public TenantResponse createTenant(UUID userId, TenantCreateRequest request) {
+        User user = userRepository.findById(userId)
         .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND, "Tenant already exists"));
 
-        if (tenantRepository.findByUserId(request.getUserId()).isPresent())
+        if (tenantRepository.findByUserId(userId).isPresent())
             throw new AppException(ErrorCode.DUPLICATE_RESOURCE, "User is already registered as a tenant");
 
         user.setRole(UserRole.TENANT);
@@ -102,12 +104,6 @@ public class TenantService {
         Tenant tenant = tenantRepository.findById(tenantId)
             .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND, "Tenant not found with id: " + tenantId));
 
-        User user = tenant.getUser();
-        if (user != null) {
-            user.setRole(null);
-            userRepository.save(user);
-        }
-
         tenantRepository.delete(tenant);
         log.info("Tenant deleted: {}", tenantId);
     }
@@ -140,6 +136,12 @@ public class TenantService {
 
     public long countTenantsByProperty(UUID propertyId) {
         return tenantRepository.countActiveByProperty(propertyId);
+    }
+
+    public boolean isTenantManagedByAdmin(UUID tenantId, UUID adminId) {
+        return propertyRepository.findPropertyByTenantId(tenantId)
+            .map(property -> property.getAdmin().getUserId().equals(adminId))
+            .orElse(false);
     }
 
     @Transactional
