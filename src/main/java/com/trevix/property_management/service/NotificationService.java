@@ -41,24 +41,26 @@ public class NotificationService {
     }
 
     // ─── Channel dispatchers (wire real providers here) ───────────────────────
-
+    @Transactional
     private void sendEmail(String email, String subject, String body) {
         // TODO: JavaMailSender / SendGrid
         log.info("[EMAIL] To: {} | Subject: {}", email, subject);
     }
 
+    @Transactional
     private void sendSms(String phone, String message) {
         // TODO: Twilio
         log.info("[SMS] To: {} | Message: {}", phone, message);
     }
 
+    @Transactional
     private void sendPush(String fcmToken, String title, String body) {
         // TODO: Firebase FCM
         log.info("[PUSH] Token: {} | Title: {}", fcmToken, title);
     }
 
     // ─── Auth ─────────────────────────────────────────────────────────────────
-
+    @Transactional
     public void sendWelcomeEmail(String email, String fullName) {
         String subject = "Welcome to Trevix!";
         String body = "Hi " + fullName + ", your account has been created successfully.";
@@ -175,7 +177,7 @@ public class NotificationService {
     }
 
     // ─── Announcements ────────────────────────────────────────────────────────
-
+    @Transactional
     public void sendAnnouncement(UUID userId, String announcementTitle, String announcementBody) {
         User user = findUser(userId);
         String data = "{\"announcementTitle\":\"" + announcementTitle + "\"}";
@@ -202,7 +204,7 @@ public class NotificationService {
 
     @Transactional
     public void markAllAsRead(UUID userId) {
-        notificationRepository.markAllAsReadByUserId(userId);
+        notificationRepository.markAllAsRead(userId);
         log.info("All notifications marked as read for user: {}", userId);
     }
 }

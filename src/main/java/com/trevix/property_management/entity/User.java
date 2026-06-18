@@ -56,13 +56,6 @@ public class User {
     @Column(name = "deleted_at")
     private OffsetDateTime deletedAt;
     
-    // Relationships
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Admin admin;
-    
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Tenant tenant;
-    
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private StaffProfile staffProfile;
 }

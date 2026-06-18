@@ -12,30 +12,22 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface PropertyRepository extends JpaRepository<Property, UUID> {
-    
-    List<Property> findByAdmin_UserId(UUID adminId);
-    
-    Page<Property> findByAdmin_UserId(UUID adminId, Pageable pageable);
-    
+    List<Property> findByOwner_Id(UUID ownerId);
+
+    Page<Property> findByOwner_Id(UUID ownerId, Pageable pageable);
+
     List<Property> findByStatus(PropertyStatus status);
-    
-    @Query("SELECT p FROM Property p WHERE p.admin.userId = :adminId AND p.deletedAt IS NULL")
-    List<Property> findActiveByAdmin(@Param("adminId") UUID adminId);
-    
-    @Query("SELECT COUNT(p) FROM Property p WHERE p.admin.userId = :adminId AND p.deletedAt IS NULL")
-    long countActiveByAdmin(@Param("adminId") UUID adminId);
-    
-    @Query("SELECT p FROM Property p WHERE p.status = 'ACTIVE'")
-    List<Property> findAllActive();
-    
-    @Query("SELECT p FROM Property p JOIN p.rooms r JOIN r.leases l WHERE l.tenant.userId = :tenantId AND l.status = 'ACTIVE'")
-    Optional<Property> findPropertyByTenantId(@Param("tenantId") UUID tenantId);
-    
+
+    @Query("SELECT p FROM Property p WHERE p.owner.id = :ownerId AND p.deletedAt IS NULL")
+    List<Property> findActiveByOwner(@Param("ownerId") UUID ownerId);
+
+    @Query("SELECT COUNT(p) FROM Property p WHERE p.owner.id = :ownerId AND p.deletedAt IS NULL")
+    long countActiveByOwner(@Param("ownerId") UUID ownerId);
+
     @Modifying
     @Transactional
     @Query("UPDATE Property p SET p.deletedAt = :deletedAt WHERE p.id = :propertyId")

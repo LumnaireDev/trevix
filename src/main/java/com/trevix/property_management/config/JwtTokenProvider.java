@@ -67,7 +67,6 @@ public class JwtTokenProvider {
             .compact();
     }
     
-    // Generate refresh token
     public String generateRefreshToken(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         
@@ -84,7 +83,6 @@ public class JwtTokenProvider {
             .compact();
     }
     
-    // Generate password reset token
     public String generatePasswordResetToken(String email) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("type", "password_reset");
@@ -99,7 +97,6 @@ public class JwtTokenProvider {
             .compact();
     }
     
-    // Get user ID from token
     public UUID getUserIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
             .setSigningKey(getSigningKey())
@@ -111,7 +108,6 @@ public class JwtTokenProvider {
         return userIdStr != null ? UUID.fromString(userIdStr) : null;
     }
     
-    // Get email from token
     public String getEmailFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
             .setSigningKey(getSigningKey())
@@ -122,7 +118,6 @@ public class JwtTokenProvider {
         return claims.getSubject();
     }
     
-    // Get roles from token
     @SuppressWarnings("unchecked")
     public List<String> getRolesFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
@@ -134,7 +129,6 @@ public class JwtTokenProvider {
         return claims.get("roles", List.class);
     }
     
-    // Get authentication from token
     public Authentication getAuthentication(String token) {
         String email = getEmailFromToken(token);
         List<String> roles = getRolesFromToken(token);
@@ -155,7 +149,6 @@ public class JwtTokenProvider {
             userDetails, null, authorities);
     }
     
-    // Validate token
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
@@ -177,7 +170,6 @@ public class JwtTokenProvider {
         return false;
     }
     
-    // Validate token and check if it's a refresh token
     public boolean validateRefreshToken(String token) {
         if (!validateToken(token)) {
             return false;
@@ -193,7 +185,6 @@ public class JwtTokenProvider {
         return "refresh".equals(type);
     }
     
-    // Validate password reset token
     public boolean validatePasswordResetToken(String token) {
         if (!validateToken(token)) {
             return false;
@@ -209,7 +200,6 @@ public class JwtTokenProvider {
         return "password_reset".equals(type);
     }
     
-    // Get token expiration
     public long getAccessTokenExpiration() {
         return jwtExpirationInMs;
     }
@@ -218,7 +208,6 @@ public class JwtTokenProvider {
         return jwtRefreshExpirationInMs;
     }
     
-    // Check if token is expired
     public boolean isTokenExpired(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
@@ -234,7 +223,6 @@ public class JwtTokenProvider {
         }
     }
     
-    // Get remaining time in milliseconds
     public long getRemainingTimeInMs(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
@@ -250,7 +238,6 @@ public class JwtTokenProvider {
         }
     }
     
-    // Extract user ID from UserDetails
     private UUID getUserIdFromUserDetails(UserDetails userDetails) {
         if (userDetails instanceof CustomUserDetails) {
             return ((CustomUserDetails) userDetails).getId();
@@ -258,7 +245,6 @@ public class JwtTokenProvider {
         return null;
     }
     
-    // Blacklist token (for logout)
     private Set<String> tokenBlacklist = ConcurrentHashMap.newKeySet();
     
     public void invalidateToken(String token) {
@@ -270,7 +256,6 @@ public class JwtTokenProvider {
         return tokenBlacklist.contains(token);
     }
     
-    // Clean expired tokens from blacklist (run this periodically)
     public void cleanBlacklist() {
         tokenBlacklist.removeIf(token -> isTokenExpired(token));
     }

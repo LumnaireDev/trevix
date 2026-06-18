@@ -1,7 +1,6 @@
 package com.trevix.property_management.repository;
 
 import com.trevix.property_management.entity.AdminSubscriptionPayment;
-import com.trevix.property_management.enums.SubscriptionPlan;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

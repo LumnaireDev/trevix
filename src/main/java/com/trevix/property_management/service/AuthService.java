@@ -130,12 +130,11 @@ public class AuthService {
     }
 
     public void resetPassword(String email) {
-        userRepository.findByEmail(email)
-            .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND, "User not found with email: " + email));
-
-        String resetToken = jwtTokenProvider.generatePasswordResetToken(email);
-        notificationService.sendPasswordResetEmail(email, resetToken);
-        log.info("Password reset email sent to: {}", email);
+        userRepository.findByEmail(email).ifPresent(user -> {
+            String resetToken = jwtTokenProvider.generatePasswordResetToken(email);
+            notificationService.sendPasswordResetEmail(email, resetToken);
+            log.info("Password reset email sent to: {}", email);
+        });
     }
 
     public void confirmResetPassword(String token, String newPassword) {

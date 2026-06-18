@@ -21,27 +21,20 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class SubscriptionService {
-
-    // ─── Limits ───────────────────────────────────────────────────────────────
-
     private static final int FREE_TRIAL_MAX_PROPERTIES = 1;
-    private static final int FREE_TRIAL_MAX_ROOMS      = 10;
-    private static final int FREE_TRIAL_MAX_TENANTS    = 10;
+    private static final int FREE_TRIAL_MAX_ROOMS = 10;
+    private static final int FREE_TRIAL_MAX_TENANTS = 10;
 
-    private static final int BASIC_MAX_PROPERTIES      = 3;
-    private static final int BASIC_MAX_ROOMS           = 50;
-    private static final int BASIC_MAX_TENANTS         = 100;
+    private static final int BASIC_MAX_PROPERTIES = 3;
+    private static final int BASIC_MAX_ROOMS = 50;
+    private static final int BASIC_MAX_TENANTS = 100;
 
-    private static final int UNLIMITED                 = Integer.MAX_VALUE;
-
-    // ─── Deps ─────────────────────────────────────────────────────────────────
+    private static final int UNLIMITED = Integer.MAX_VALUE;
 
     private final AdminRepository adminRepository;
     private final PropertyRepository propertyRepository;
     private final RoomRepository roomRepository;
     private final TenantRepository tenantRepository;
-
-    // ─── Limit resolvers ──────────────────────────────────────────────────────
 
     public int getPropertyLimit(SubscriptionPlan plan) {
         return switch (plan) {
@@ -67,8 +60,6 @@ public class SubscriptionService {
         };
     }
 
-    // ─── Guard checks ─────────────────────────────────────────────────────────
-
     public boolean canAddProperty(UUID adminId) {
         Admin admin = getAdmin(adminId);
         assertSubscriptionActive(admin);
@@ -89,8 +80,6 @@ public class SubscriptionService {
         long current = tenantRepository.countActiveByAdmin(adminId);
         return current < getTenantLimit(admin.getSubscriptionPlan());
     }
-
-    // ─── Subscription lifecycle ───────────────────────────────────────────────
 
     @Transactional
     public void upgradePlan(UUID adminId, SubscriptionPlan newPlan) {
@@ -136,8 +125,6 @@ public class SubscriptionService {
         log.info("Subscription expired for admin: {}", adminId);
     }
 
-    // ─── Status checks ────────────────────────────────────────────────────────
-
     public boolean isSubscriptionActive(UUID adminId) {
         Admin admin = getAdmin(adminId);
         return isActive(admin);
@@ -157,8 +144,6 @@ public class SubscriptionService {
     public SubscriptionStatus getCurrentStatus(UUID adminId) {
         return getAdmin(adminId).getSubscriptionStatus();
     }
-
-    // ─── Private helpers ──────────────────────────────────────────────────────
 
     private Admin getAdmin(UUID adminId) {
         return adminRepository.findById(adminId)

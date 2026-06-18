@@ -2,8 +2,6 @@ package com.trevix.property_management.repository;
 
 import com.trevix.property_management.entity.MaintenanceRequest;
 import com.trevix.property_management.enums.MaintenanceStatus;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
