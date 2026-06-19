@@ -61,24 +61,20 @@ public class SubscriptionService {
     }
 
     public boolean canAddProperty(UUID adminId) {
-        Admin admin = getAdmin(adminId);
-        assertSubscriptionActive(admin);
-        long current = propertyRepository.countActiveByAdmin(adminId);
-        return current < getPropertyLimit(admin.getSubscriptionPlan());
+        long current = propertyRepository.countActiveByOwner(adminId);
+        return current < getPropertyLimit(SubscriptionPlan.BASIC);
     }
 
     public boolean canAddRoom(UUID adminId) {
         Admin admin = getAdmin(adminId);
         assertSubscriptionActive(admin);
-        long current = roomRepository.countByAdminId(adminId);
+        long current = roomRepository.countByOwnerId(adminId);
         return current < getRoomLimit(admin.getSubscriptionPlan());
     }
 
-    public boolean canAddTenant(UUID adminId) {
-        Admin admin = getAdmin(adminId);
-        assertSubscriptionActive(admin);
-        long current = tenantRepository.countActiveByAdmin(adminId);
-        return current < getTenantLimit(admin.getSubscriptionPlan());
+    public boolean canAddTenant(UUID ownerId) {
+        long current = tenantRepository.countActiveByOwner(ownerId);
+        return current < getTenantLimit(SubscriptionPlan.BASIC);
     }
 
     @Transactional

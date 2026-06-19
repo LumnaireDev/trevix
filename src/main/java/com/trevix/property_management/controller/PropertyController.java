@@ -23,85 +23,93 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/properties")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('LANDLORD')")
 public class PropertyController {
 
     private final PropertyService propertyService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<PropertyResponse>> createProperty(@AuthenticationPrincipal CustomUserDetails principal,
-                                                                          @Valid @RequestBody PropertyCreateRequest request,
-                                                                          HttpServletRequest httpRequest) {
+    public ResponseEntity<ApiResponse<PropertyResponse>> createProperty(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @Valid @RequestBody PropertyCreateRequest request,
+            HttpServletRequest httpRequest) {
         PropertyResponse response = propertyService.createProperty(principal.getId(), request);
         return ResponseEntity.ok(ApiResponse.success(response, "Property created", httpRequest.getRequestURI()));
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PropertyResponse>>> getProperties(@AuthenticationPrincipal CustomUserDetails principal,
-                                                                               HttpServletRequest httpRequest) {
-        List<PropertyResponse> response = propertyService.getPropertiesByAdmin(principal.getId());
+    public ResponseEntity<ApiResponse<List<PropertyResponse>>> getProperties(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            HttpServletRequest httpRequest) {
+        List<PropertyResponse> response = propertyService.getPropertiesByOwner(principal.getId());
         return ResponseEntity.ok(ApiResponse.success(response, "Properties retrieved", httpRequest.getRequestURI()));
     }
 
     @GetMapping("/{propertyId}")
-    public ResponseEntity<ApiResponse<PropertyResponse>> getProperty(@AuthenticationPrincipal CustomUserDetails principal,
-                                                                       @PathVariable UUID propertyId,
-                                                                       HttpServletRequest httpRequest) {
+    public ResponseEntity<ApiResponse<PropertyResponse>> getProperty(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable UUID propertyId,
+            HttpServletRequest httpRequest) {
         PropertyResponse response = verifyOwnership(propertyId, principal.getId());
         return ResponseEntity.ok(ApiResponse.success(response, "Property retrieved", httpRequest.getRequestURI()));
     }
 
     @GetMapping("/{propertyId}/detail")
-    public ResponseEntity<ApiResponse<PropertyDetailResponse>> getPropertyDetail(@AuthenticationPrincipal CustomUserDetails principal,
-                                                                                   @PathVariable UUID propertyId,
-                                                                                   HttpServletRequest httpRequest) {
+    public ResponseEntity<ApiResponse<PropertyDetailResponse>> getPropertyDetail(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable UUID propertyId,
+            HttpServletRequest httpRequest) {
         verifyOwnership(propertyId, principal.getId());
         PropertyDetailResponse response = propertyService.getPropertyDetail(propertyId);
         return ResponseEntity.ok(ApiResponse.success(response, "Property detail retrieved", httpRequest.getRequestURI()));
     }
 
     @PutMapping("/{propertyId}")
-    public ResponseEntity<ApiResponse<PropertyResponse>> updateProperty(@AuthenticationPrincipal CustomUserDetails principal,
-                                                                          @PathVariable UUID propertyId,
-                                                                          @Valid @RequestBody PropertyUpdateRequest request,
-                                                                          HttpServletRequest httpRequest) {
+    public ResponseEntity<ApiResponse<PropertyResponse>> updateProperty(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable UUID propertyId,
+            @Valid @RequestBody PropertyUpdateRequest request,
+            HttpServletRequest httpRequest) {
         verifyOwnership(propertyId, principal.getId());
         PropertyResponse response = propertyService.updateProperty(propertyId, request);
         return ResponseEntity.ok(ApiResponse.success(response, "Property updated", httpRequest.getRequestURI()));
     }
 
     @DeleteMapping("/{propertyId}")
-    public ResponseEntity<ApiResponse<Void>> deleteProperty(@AuthenticationPrincipal CustomUserDetails principal,
-                                                              @PathVariable UUID propertyId,
-                                                              HttpServletRequest httpRequest) {
+    public ResponseEntity<ApiResponse<Void>> deleteProperty(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable UUID propertyId,
+            HttpServletRequest httpRequest) {
         verifyOwnership(propertyId, principal.getId());
         propertyService.softDeleteProperty(propertyId);
         return ResponseEntity.ok(ApiResponse.success(null, "Property deleted", httpRequest.getRequestURI()));
     }
 
     @PatchMapping("/{propertyId}/activate")
-    public ResponseEntity<ApiResponse<Void>> activateProperty(@AuthenticationPrincipal CustomUserDetails principal,
-                                                                @PathVariable UUID propertyId,
-                                                                HttpServletRequest httpRequest) {
+    public ResponseEntity<ApiResponse<Void>> activateProperty(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable UUID propertyId,
+            HttpServletRequest httpRequest) {
         verifyOwnership(propertyId, principal.getId());
         propertyService.activateProperty(propertyId);
         return ResponseEntity.ok(ApiResponse.success(null, "Property activated", httpRequest.getRequestURI()));
     }
 
     @PatchMapping("/{propertyId}/deactivate")
-    public ResponseEntity<ApiResponse<Void>> deactivateProperty(@AuthenticationPrincipal CustomUserDetails principal,
-                                                                  @PathVariable UUID propertyId,
-                                                                  HttpServletRequest httpRequest) {
+    public ResponseEntity<ApiResponse<Void>> deactivateProperty(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable UUID propertyId,
+            HttpServletRequest httpRequest) {
         verifyOwnership(propertyId, principal.getId());
         propertyService.deactivateProperty(propertyId);
         return ResponseEntity.ok(ApiResponse.success(null, "Property deactivated", httpRequest.getRequestURI()));
     }
 
-    private PropertyResponse verifyOwnership(UUID propertyId, UUID adminId) {
+    // Ownership guard
+    private PropertyResponse verifyOwnership(UUID propertyId, UUID ownerId) {
         PropertyResponse property = propertyService.getPropertyById(propertyId);
-        if (!property.getAdminId().equals(adminId)) {
+        if (!property.getOwnerId().equals(ownerId))
             throw new AppException(ErrorCode.FORBIDDEN, "You do not have access to this property");
-        }
         return property;
     }
 }

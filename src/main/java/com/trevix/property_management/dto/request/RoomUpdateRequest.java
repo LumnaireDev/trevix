@@ -10,13 +10,9 @@ import java.math.BigDecimal;
 
 @Data
 public class RoomUpdateRequest {
-
-    @NotBlank(message = "Room number is required")
     private String roomNumber;
-
     private Integer floor;
 
-    @NotNull(message = "Base rent is required")
     @Positive(message = "Base rent must be positive")
     private BigDecimal baseRent;
 
@@ -30,8 +26,6 @@ public class RoomUpdateRequest {
     private Integer capacity;
 
     private String description;
-
     private RoomStatus status;
-
     private Boolean isActive;
 }

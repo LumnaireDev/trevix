@@ -1,6 +1,8 @@
 package com.trevix.property_management.repository;
 
 import com.trevix.property_management.entity.Payment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,26 +16,22 @@ import java.util.UUID;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, UUID> {
-    
-    List<Payment> findByBillId(UUID billId);
-    
-    List<Payment> findByStatus(String status);
-    
-    @Query("SELECT p FROM Payment p WHERE p.xenditChargeId = :chargeId")
-    List<Payment> findByXenditChargeId(@Param("chargeId") String chargeId);
-    
-    @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.bill.tenant.userId = :tenantId AND p.status = 'completed'")
-    BigDecimal getTotalPaymentsByTenant(@Param("tenantId") UUID tenantId);
-    
-    @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.bill.property.id = :propertyId AND p.status = 'completed' AND p.paidAt BETWEEN :startDate AND :endDate")
-    BigDecimal getTotalPaymentsByPropertyAndDateRange(@Param("propertyId") UUID propertyId, 
-                                                       @Param("startDate") OffsetDateTime startDate, 
-                                                       @Param("endDate") OffsetDateTime endDate);
-    
+
+    List<Payment> findByBill_Id(UUID billId);
+
+    @Query("SELECT p FROM Payment p WHERE p.bill.tenant.userId = :tenantId ORDER BY p.createdAt DESC")
+    List<Payment> findByTenantId(@Param("tenantId") UUID tenantId);
+
+    @Query("SELECT p FROM Payment p WHERE p.bill.property.owner.id = :ownerId ORDER BY p.createdAt DESC")
+    Page<Payment> findRecentByOwner(@Param("ownerId") UUID ownerId, Pageable pageable);
+
+    @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.bill.tenant.userId = :tenantId AND p.status = 'PAID'")
+    BigDecimal getTotalPaidByTenant(@Param("tenantId") UUID tenantId);
+
     @Modifying
     @Transactional
     @Query("UPDATE Payment p SET p.status = :status, p.paidAt = :paidAt WHERE p.id = :paymentId")
-    void updatePaymentStatus(@Param("paymentId") UUID paymentId, 
-                             @Param("status") String status, 
-                             @Param("paidAt") OffsetDateTime paidAt);
+    void updateStatus(@Param("paymentId") UUID paymentId,
+                      @Param("status") String status,
+                      @Param("paidAt") OffsetDateTime paidAt);
 }

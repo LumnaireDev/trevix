@@ -9,7 +9,6 @@ import java.util.UUID;
 
 @Data
 public class RoomDetailResponse {
-
     private UUID id;
     private UUID propertyId;
     private String propertyName;
@@ -26,8 +25,6 @@ public class RoomDetailResponse {
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 
-    // Nested summaries — avoid returning full entity graphs
-    private List<LeaseResponse> leases;
+    // Only what has UI backing
     private List<MaintenanceRequestResponse> maintenanceRequests;
-    private List<UtilityMeterReadingResponse> meterReadings;
 }

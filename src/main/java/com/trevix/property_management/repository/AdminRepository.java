@@ -29,7 +29,7 @@ public interface AdminRepository extends JpaRepository<Admin, UUID> {
     @Query("SELECT a FROM Admin a WHERE a.subscriptionStatus = 'ACTIVE' AND a.currentPeriodEnd < :now")
     List<Admin> findExpiredSubscriptions(@Param("now") OffsetDateTime now);
     
-    @Query("SELECT COUNT(p) FROM Property p WHERE p.admin.userId = :adminId")
+    @Query("SELECT COUNT(p) FROM Property p WHERE p.owner.id = :adminId AND p.deletedAt IS NULL")
     long countPropertiesByAdmin(@Param("adminId") UUID adminId);
     
     @Modifying

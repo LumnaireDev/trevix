@@ -42,6 +42,9 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
         try {
+            User debugUser = userRepository.findByEmail(request.getEmail()).orElse(null);
+            log.info("User found: {}, passwordHash: {}", debugUser != null, debugUser != null ? debugUser.getPasswordHash() : "null");
+
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
@@ -61,7 +64,7 @@ public class AuthService {
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Login failed for email: {}", request.getEmail());
+            log.error("Login failed for email: {} — cause: {}", request.getEmail(), e.getMessage(), e);
             throw new AppException(ErrorCode.UNAUTHORIZED, "Invalid email or password");
         }
     }

@@ -11,16 +11,16 @@ import java.util.UUID;
 
 @Repository
 public interface IncidentReportRepository extends JpaRepository<IncidentReport, UUID> {
-    
+
     List<IncidentReport> findByPropertyId(UUID propertyId);
-    
-    List<IncidentReport> findByReportedBy_UserId(UUID userId);
-    
+
+    List<IncidentReport> findByReportedBy_Id(UUID userId);
+
     @Query("SELECT i FROM IncidentReport i WHERE i.property.id = :propertyId AND i.incidentTime BETWEEN :startDate AND :endDate")
-    List<IncidentReport> findByPropertyAndDateRange(@Param("propertyId") UUID propertyId, 
-                                                     @Param("startDate") OffsetDateTime startDate, 
+    List<IncidentReport> findByPropertyAndDateRange(@Param("propertyId") UUID propertyId,
+                                                     @Param("startDate") OffsetDateTime startDate,
                                                      @Param("endDate") OffsetDateTime endDate);
-    
+
     @Query("SELECT i FROM IncidentReport i WHERE i.severity = :severity")
     List<IncidentReport> findBySeverity(@Param("severity") String severity);
 }

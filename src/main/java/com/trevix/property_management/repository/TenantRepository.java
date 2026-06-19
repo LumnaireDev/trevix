@@ -17,40 +17,28 @@ import java.util.UUID;
 
 @Repository
 public interface TenantRepository extends JpaRepository<Tenant, UUID> {
-    
+
     Optional<Tenant> findByUserId(UUID userId);
-    
+
     @Query("SELECT t FROM Tenant t WHERE t.isActive = true")
     List<Tenant> findAllActive();
-    
-    @Query("SELECT DISTINCT t FROM Tenant t JOIN Lease l ON l.tenant = t " +
-           "WHERE t.isActive = true AND l.property.id = :propertyId AND l.status = 'ACTIVE'")
+
+    // Tenants linked via MonthlyBill (Lease is deleted)
+    @Query("SELECT DISTINCT b.tenant FROM MonthlyBill b WHERE b.tenant.isActive = true AND b.property.id = :propertyId")
     List<Tenant> findByPropertyId(@Param("propertyId") UUID propertyId);
 
-    @Query("SELECT DISTINCT t FROM Tenant t JOIN Lease l ON l.tenant = t " +
-           "WHERE t.isActive = true AND l.property.id = :propertyId AND l.room.id = :roomId AND l.status = 'ACTIVE'")
-    List<Tenant> findByPropertyAndRoom(@Param("propertyId") UUID propertyId, @Param("roomId") UUID roomId);
-
-    @Query("SELECT COUNT(DISTINCT t) FROM Tenant t JOIN Lease l ON l.tenant = t " +
-           "WHERE t.isActive = true AND l.property.id = :propertyId AND l.status = 'ACTIVE'")
+    @Query("SELECT COUNT(DISTINCT b.tenant) FROM MonthlyBill b WHERE b.tenant.isActive = true AND b.property.id = :propertyId")
     long countActiveByProperty(@Param("propertyId") UUID propertyId);
 
-    @Query("SELECT t FROM Tenant t WHERE t.scorecardScore < :threshold ORDER BY t.scorecardScore ASC")
-    List<Tenant> findLowScorecardTenants(@Param("threshold") BigDecimal threshold);
+    @Query("SELECT COUNT(DISTINCT b.tenant) FROM MonthlyBill b WHERE b.tenant.isActive = true AND b.property.owner.id = :ownerId")
+    long countActiveByOwner(@Param("ownerId") UUID ownerId);
 
-    @Query("SELECT AVG(t.scorecardScore) FROM Tenant t JOIN Lease l ON l.tenant = t " +
-           "WHERE l.property.id = :propertyId AND l.status = 'ACTIVE'")
-    BigDecimal getAverageScorecardScore(@Param("propertyId") UUID propertyId);
-    
     @Query("SELECT t FROM Tenant t WHERE t.moveInDate BETWEEN :startDate AND :endDate")
-    List<Tenant> findTenantsByMoveInDateRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
-    
+    List<Tenant> findTenantsByMoveInDateRange(@Param("startDate") LocalDate startDate,
+                                               @Param("endDate") LocalDate endDate);
+
     @Modifying
     @Transactional
     @Query("UPDATE Tenant t SET t.isActive = false WHERE t.userId = :tenantId")
     void deactivateTenant(@Param("tenantId") UUID tenantId);
-
-    @Query("SELECT COUNT(DISTINCT t) FROM Tenant t JOIN Lease l ON l.tenant = t " +
-           "WHERE t.isActive = true AND l.status = 'ACTIVE' AND l.property.admin.userId = :adminId")
-    long countActiveByAdmin(@Param("adminId") UUID adminId);
 }

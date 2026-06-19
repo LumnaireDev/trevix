@@ -10,6 +10,8 @@ import java.util.UUID;
 @Data
 public class MonthlyBillResponse {
     private UUID id;
+    private UUID propertyId;
+    private String propertyName;
     private UUID roomId;
     private String roomNumber;
     private UUID tenantId;
@@ -22,8 +24,6 @@ public class MonthlyBillResponse {
     private LocalDate dueDate;
     private BillStatus status;
     private OffsetDateTime paidAt;
-    private String xenditInvoiceId;
-    private String invoiceUrl;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 }

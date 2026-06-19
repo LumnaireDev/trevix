@@ -2,23 +2,20 @@ package com.trevix.property_management.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.trevix.property_management.dto.request.PropertyCreateRequest;
 import com.trevix.property_management.dto.request.PropertyUpdateRequest;
 import com.trevix.property_management.dto.response.PropertyDetailResponse;
 import com.trevix.property_management.dto.response.PropertyResponse;
-import com.trevix.property_management.entity.Admin;
 import com.trevix.property_management.entity.Property;
+import com.trevix.property_management.entity.User;
 import com.trevix.property_management.enums.ErrorCode;
 import com.trevix.property_management.enums.PropertyStatus;
 import com.trevix.property_management.exception.AppException;
 import com.trevix.property_management.mapper.PropertyMapper;
-import com.trevix.property_management.repository.AdminRepository;
 import com.trevix.property_management.repository.PropertyRepository;
-
+import com.trevix.property_management.repository.UserRepository;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -30,29 +27,21 @@ import java.util.UUID;
 public class PropertyService {
 
     private final PropertyRepository propertyRepository;
-    private final AdminRepository adminRepository;
+    private final UserRepository userRepository;
     private final PropertyMapper propertyMapper;
-    private final SubscriptionService subscriptionService;
 
     @Transactional
-    public PropertyResponse createProperty(UUID adminId, PropertyCreateRequest request) {
-        Admin admin = adminRepository.findById(adminId)
-            .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND, "Admin not found: " + adminId));
-
-        if (!subscriptionService.canAddProperty(adminId)) {
-            long current = propertyRepository.countActiveByAdmin(adminId);
-            int limit = subscriptionService.getPropertyLimit(admin.getSubscriptionPlan());
-            throw new AppException(ErrorCode.FORBIDDEN,
-                "Property limit reached for plan " + admin.getSubscriptionPlan() + ": " + current + "/" + limit);
-        }
+    public PropertyResponse createProperty(UUID ownerId, PropertyCreateRequest request) {
+        User owner = userRepository.findById(ownerId)
+            .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND, "User not found: " + ownerId));
 
         Property property = propertyMapper.toEntity(request);
-        property.setAdmin(admin);
+        property.setOwner(owner);
 
-        Property savedProperty = propertyRepository.save(property);
-        log.info("Property created: {} for admin: {}", savedProperty.getName(), adminId);
+        Property saved = propertyRepository.save(property);
+        log.info("Property created: {} for owner: {}", saved.getName(), ownerId);
 
-        return propertyMapper.toResponse(savedProperty);
+        return propertyMapper.toResponse(saved);
     }
 
     @Transactional
@@ -78,33 +67,8 @@ public class PropertyService {
         );
     }
 
-    public List<PropertyResponse> getPropertiesByAdmin(UUID adminId) {
-        if (!adminRepository.existsById(adminId))
-            throw new AppException(ErrorCode.RESOURCE_NOT_FOUND, "Admin not found: " + adminId);
-        return propertyMapper.toResponseList(propertyRepository.findActiveByAdmin(adminId));
-    }
-
-    public Page<PropertyResponse> getPropertiesByAdmin(UUID adminId, Pageable pageable) {
-        if (!adminRepository.existsById(adminId))
-            throw new AppException(ErrorCode.RESOURCE_NOT_FOUND, "Admin not found: " + adminId);
-        return propertyRepository.findByAdmin_UserId(adminId, pageable)
-            .map(propertyMapper::toResponse);
-    }
-
-    public List<PropertyResponse> getAllProperties() {
-        return propertyMapper.toResponseList(propertyRepository.findAll());
-    }
-
-    public Page<PropertyResponse> getAllProperties(Pageable pageable) {
-        return propertyRepository.findAll(pageable).map(propertyMapper::toResponse);
-    }
-
-    @Transactional
-    public void deleteProperty(UUID propertyId) {
-        if (!propertyRepository.existsById(propertyId))
-            throw new AppException(ErrorCode.RESOURCE_NOT_FOUND, "Property not found: " + propertyId);
-        propertyRepository.deleteById(propertyId);
-        log.info("Property deleted: {}", propertyId);
+    public List<PropertyResponse> getPropertiesByOwner(UUID ownerId) {
+        return propertyMapper.toResponseList(propertyRepository.findActiveByOwner(ownerId));
     }
 
     @Transactional
@@ -127,13 +91,5 @@ public class PropertyService {
         Property property = propertyRepository.findById(propertyId)
             .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND, "Property not found: " + propertyId));
         property.setStatus(PropertyStatus.INACTIVE);
-    }
-
-    public long countPropertiesByAdmin(UUID adminId) {
-        return propertyRepository.countActiveByAdmin(adminId);
-    }
-
-    public boolean canAddMoreProperties(UUID adminId) {
-        return subscriptionService.canAddProperty(adminId);
     }
 }

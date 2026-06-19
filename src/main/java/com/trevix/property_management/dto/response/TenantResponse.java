@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -14,12 +13,12 @@ import java.util.UUID;
 @AllArgsConstructor
 public class TenantResponse {
     private UUID userId;
-    private UserResponse user;
+    private String fullName;
+    private String email;
+    private String phone;
     private String emergencyContactName;
     private String emergencyContactPhone;
     private String emergencyContactRelation;
-    private BigDecimal scorecardScore;
-    private String scorecardGrade;
     private LocalDate moveInDate;
     private Boolean isActive;
 }

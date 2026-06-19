@@ -6,14 +6,9 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 import java.math.BigDecimal;
-import java.util.UUID;
 
 @Data
 public class RoomCreateRequest {
-
-    @NotNull(message = "Property ID is required")
-    private UUID propertyId;
-
     @NotBlank(message = "Room number is required")
     private String roomNumber;
 

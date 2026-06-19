@@ -24,95 +24,85 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('LANDLORD')")
 public class TenantController {
 
     private final TenantService tenantService;
     private final PropertyService propertyService;
 
-    @GetMapping("/api/tenants/me")
-    @PreAuthorize("hasRole('TENANT')")
-    public ResponseEntity<ApiResponse<TenantDetailResponse>> getMyTenantProfile(@AuthenticationPrincipal CustomUserDetails principal,
-                                                                                  HttpServletRequest httpRequest) {
-        TenantDetailResponse response = tenantService.getTenantDetail(principal.getId());
-        return ResponseEntity.ok(ApiResponse.success(response, "Tenant profile retrieved", httpRequest.getRequestURI()));
-    }
-
-    @PostMapping("/api/tenants/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<TenantResponse>> createTenant(@PathVariable UUID userId,
-                                                                      @Valid @RequestBody TenantCreateRequest request,
-                                                                      HttpServletRequest httpRequest) {
-        TenantResponse response = tenantService.createTenant(userId, request);
+    @PostMapping("/api/tenants")
+    public ResponseEntity<ApiResponse<TenantResponse>> createTenant(
+            @Valid @RequestBody TenantCreateRequest request,
+            HttpServletRequest httpRequest) {
+        TenantResponse response = tenantService.createTenant(request);
         return ResponseEntity.ok(ApiResponse.success(response, "Tenant created", httpRequest.getRequestURI()));
     }
 
     @GetMapping("/api/tenants/{tenantId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<TenantDetailResponse>> getTenant(@AuthenticationPrincipal CustomUserDetails principal,
-                                                                         @PathVariable UUID tenantId,
-                                                                         HttpServletRequest httpRequest) {
+    public ResponseEntity<ApiResponse<TenantDetailResponse>> getTenant(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable UUID tenantId,
+            HttpServletRequest httpRequest) {
         verifyTenantOwnership(tenantId, principal.getId());
         TenantDetailResponse response = tenantService.getTenantDetail(tenantId);
         return ResponseEntity.ok(ApiResponse.success(response, "Tenant retrieved", httpRequest.getRequestURI()));
     }
 
     @PutMapping("/api/tenants/{tenantId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<TenantResponse>> updateTenant(@AuthenticationPrincipal CustomUserDetails principal,
-                                                                      @PathVariable UUID tenantId,
-                                                                      @Valid @RequestBody TenantUpdateRequest request,
-                                                                      HttpServletRequest httpRequest) {
+    public ResponseEntity<ApiResponse<TenantResponse>> updateTenant(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable UUID tenantId,
+            @Valid @RequestBody TenantUpdateRequest request,
+            HttpServletRequest httpRequest) {
         verifyTenantOwnership(tenantId, principal.getId());
         TenantResponse response = tenantService.updateTenant(tenantId, request);
         return ResponseEntity.ok(ApiResponse.success(response, "Tenant updated", httpRequest.getRequestURI()));
     }
 
     @DeleteMapping("/api/tenants/{tenantId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteTenant(@AuthenticationPrincipal CustomUserDetails principal,
-                                                            @PathVariable UUID tenantId,
-                                                            HttpServletRequest httpRequest) {
+    public ResponseEntity<ApiResponse<Void>> deleteTenant(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable UUID tenantId,
+            HttpServletRequest httpRequest) {
         verifyTenantOwnership(tenantId, principal.getId());
         tenantService.deleteTenant(tenantId);
         return ResponseEntity.ok(ApiResponse.success(null, "Tenant deleted", httpRequest.getRequestURI()));
     }
 
     @PatchMapping("/api/tenants/{tenantId}/activate")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> activateTenant(@AuthenticationPrincipal CustomUserDetails principal,
-                                                              @PathVariable UUID tenantId,
-                                                              HttpServletRequest httpRequest) {
+    public ResponseEntity<ApiResponse<Void>> activateTenant(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable UUID tenantId,
+            HttpServletRequest httpRequest) {
         verifyTenantOwnership(tenantId, principal.getId());
         tenantService.activateTenant(tenantId);
         return ResponseEntity.ok(ApiResponse.success(null, "Tenant activated", httpRequest.getRequestURI()));
     }
 
     @PatchMapping("/api/tenants/{tenantId}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deactivateTenant(@AuthenticationPrincipal CustomUserDetails principal,
-                                                                @PathVariable UUID tenantId,
-                                                                HttpServletRequest httpRequest) {
+    public ResponseEntity<ApiResponse<Void>> deactivateTenant(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable UUID tenantId,
+            HttpServletRequest httpRequest) {
         verifyTenantOwnership(tenantId, principal.getId());
         tenantService.deactivateTenant(tenantId);
         return ResponseEntity.ok(ApiResponse.success(null, "Tenant deactivated", httpRequest.getRequestURI()));
     }
 
     @GetMapping("/api/properties/{propertyId}/tenants")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<List<TenantResponse>>> getTenantsByProperty(@AuthenticationPrincipal CustomUserDetails principal,
-                                                                                    @PathVariable UUID propertyId,
-                                                                                    HttpServletRequest httpRequest) {
+    public ResponseEntity<ApiResponse<List<TenantResponse>>> getTenantsByProperty(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable UUID propertyId,
+            HttpServletRequest httpRequest) {
         PropertyResponse property = propertyService.getPropertyById(propertyId);
-        if (!property.getAdminId().equals(principal.getId())) {
+        if (!property.getOwnerId().equals(principal.getId()))
             throw new AppException(ErrorCode.FORBIDDEN, "You do not have access to this property");
-        }
         List<TenantResponse> response = tenantService.getActiveTenantsByProperty(propertyId);
         return ResponseEntity.ok(ApiResponse.success(response, "Tenants retrieved", httpRequest.getRequestURI()));
     }
 
-    private void verifyTenantOwnership(UUID tenantId, UUID adminId) {
-        if (!tenantService.isTenantManagedByAdmin(tenantId, adminId)) {
+    private void verifyTenantOwnership(UUID tenantId, UUID ownerId) {
+        if (!tenantService.isTenantManagedByOwner(tenantId, ownerId))
             throw new AppException(ErrorCode.FORBIDDEN, "You do not have access to this tenant");
-        }
     }
 }

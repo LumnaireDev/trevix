@@ -12,17 +12,12 @@ import java.util.UUID;
 
 @Repository
 public interface AnnouncementRepository extends JpaRepository<Announcement, UUID> {
-    
-    List<Announcement> findByPropertyId(UUID propertyId);
-    
-    List<Announcement> findByAdmin_UserId(UUID adminId);
-    
-    @Query("SELECT a FROM Announcement a WHERE a.property.id = :propertyId ORDER BY a.createdAt DESC")
-    Page<Announcement> findByPropertyIdOrderByCreatedAtDesc(@Param("propertyId") UUID propertyId, Pageable pageable);
-    
-    @Query("SELECT a FROM Announcement a WHERE a.property.id = :propertyId AND a.targetType = 'all'")
-    List<Announcement> findGlobalAnnouncements(@Param("propertyId") UUID propertyId);
-    
-    @Query("SELECT COUNT(a) FROM Announcement a WHERE a.property.id = :propertyId AND a.createdAt >= :startDate")
-    long countAnnouncementsSince(@Param("propertyId") UUID propertyId, @Param("startDate") java.time.OffsetDateTime startDate);
+
+    List<Announcement> findByProperty_IdOrderByCreatedAtDesc(UUID propertyId);
+
+    @Query("SELECT a FROM Announcement a WHERE a.property.owner.id = :ownerId ORDER BY a.createdAt DESC")
+    List<Announcement> findByOwnerId(@Param("ownerId") UUID ownerId);
+
+    @Query("SELECT a FROM Announcement a WHERE a.property.owner.id = :ownerId ORDER BY a.createdAt DESC")
+    Page<Announcement> findRecentByOwner(@Param("ownerId") UUID ownerId, Pageable pageable);
 }

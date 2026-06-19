@@ -14,45 +14,39 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CustomUserDetails implements UserDetails {
-    
+
     private UUID id;
     private String email;
     private String password;
     private Collection<? extends GrantedAuthority> authorities;
-    private boolean isActive;
-    
+    private boolean accountEnabled;    // ← renamed from isActive
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
     }
-    
+
     @Override
     public String getPassword() {
         return password;
     }
-    
+
     @Override
     public String getUsername() {
         return email;
     }
-    
+
     @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-    
+    public boolean isAccountNonExpired() { return true; }
+
     @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-    
+    public boolean isAccountNonLocked() { return true; }
+
     @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-    
+    public boolean isCredentialsNonExpired() { return true; }
+
     @Override
     public boolean isEnabled() {
-        return isActive;
+        return accountEnabled;
     }
 }

@@ -14,34 +14,28 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Tenant {
-    
+
     @Id
     @Column(name = "user_id")
     private UUID userId;
-    
+
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "user_id")
     private User user;
-    
+
     @Column(name = "emergency_contact_name")
     private String emergencyContactName;
-    
+
     @Column(name = "emergency_contact_phone")
     private String emergencyContactPhone;
-    
+
     @Column(name = "emergency_contact_relation")
     private String emergencyContactRelation;
-    
-    @Column(name = "scorecard_score", precision = 3, scale = 2)
-    private BigDecimal scorecardScore = BigDecimal.ZERO;
-    
-    @Column(name = "scorecard_grade", length = 1)
-    private String scorecardGrade;
-    
+
     @Column(name = "move_in_date")
     private LocalDate moveInDate;
-    
+
     @Column(name = "is_active")
     private Boolean isActive = true;
 }

@@ -11,6 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import com.trevix.property_management.security.CustomUserDetails;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,8 +38,7 @@ public class JwtTokenProvider {
     // Initialize signing key
     private Key getSigningKey() {
         if (key == null) {
-            byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);
-            key = Keys.hmacShaKeyFor(keyBytes);
+            key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         }
         return key;
     }
@@ -143,6 +143,7 @@ public class JwtTokenProvider {
             .email(email)
             .password("") // Password not needed for authentication
             .authorities(authorities)
+            .accountEnabled(true)
             .build();
         
         return new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
